@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" :class="{ 'dark-theme': isDarkTheme }">
     <nav v-if="$route.path !== '/login'" class="navbar">
       <div class="nav-brand">
         <router-link to="/todo" class="brand-link">📖 To-Do</router-link>
@@ -7,6 +7,9 @@
       <div class="nav-links">
         <router-link to="/todo" class="nav-link">Задачи</router-link>
         <router-link to="/about" class="nav-link">Инфо</router-link>
+        <button @click="toggleTheme" class="theme-toggle">
+          {{ isDarkTheme ? '☀️' : '🌙' }}
+        </button>
         <button @click="logout" class="logout-btn">Выход</button>
       </div>
     </nav>
@@ -20,9 +23,32 @@
 <script setup>
 import { useAuthStore } from './stores/auth'
 import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
 
 const auth = useAuthStore()
 const router = useRouter()
+const isDarkTheme = ref(false)
+
+// Загружаем тему из localStorage при загрузке
+onMounted(() => {
+  const savedTheme = localStorage.getItem('darkTheme')
+  isDarkTheme.value = savedTheme === 'true'
+  applyTheme()
+})
+
+const toggleTheme = () => {
+  isDarkTheme.value = !isDarkTheme.value
+  localStorage.setItem('darkTheme', isDarkTheme.value)
+  applyTheme()
+}
+
+const applyTheme = () => {
+  if (isDarkTheme.value) {
+    document.body.classList.add('dark-theme')
+  } else {
+    document.body.classList.remove('dark-theme')
+  }
+}
 
 const logout = () => {
   auth.logout()
@@ -42,6 +68,12 @@ body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   color: #333;
+  transition: all 0.3s ease;
+}
+
+body.dark-theme {
+  background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+  color: #f0f0f0;
 }
 
 #app {
@@ -57,6 +89,13 @@ body {
   align-items: center;
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.dark-theme .navbar {
+  background: rgba(44, 62, 80, 0.95);
+  color: #f0f0f0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .nav-brand .brand-link {
@@ -84,14 +123,45 @@ body {
   font-weight: 500;
 }
 
+.dark-theme .nav-link {
+  color: #ddd;
+}
+
 .nav-link:hover {
   background: #f8f9fa;
+  color: #6C63FF;
+}
+
+.dark-theme .nav-link:hover {
+  background: rgba(255, 255, 255, 0.1);
   color: #6C63FF;
 }
 
 .nav-link.router-link-active {
   background: #6C63FF;
   color: white;
+}
+
+.theme-toggle {
+  background: transparent;
+  border: 2px solid #6C63FF;
+  color: #6C63FF;
+  padding: 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.theme-toggle:hover {
+  background: #6C63FF;
+  color: white;
+  transform: translateY(-1px);
 }
 
 .logout-btn {

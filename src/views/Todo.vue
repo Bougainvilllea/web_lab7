@@ -30,8 +30,32 @@
             @change="todoStore.toggleTask(task.id)"
             class="task-checkbox"
           >
-          <span class="task-text">{{ task.text }}</span>
-          <button @click="todoStore.deleteTask(task.id)" class="delete-btn">×</button>
+          
+          <div v-if="todoStore.editingTaskId === task.id" class="edit-mode">
+            <input 
+              v-model="todoStore.editText" 
+              @keyup.enter="todoStore.saveEdit"
+              @keyup.escape="todoStore.cancelEdit"
+              @blur="todoStore.saveEdit"
+              class="edit-input"
+              v-focus
+            >
+          </div>
+          <div v-else class="view-mode">
+            <span 
+              class="task-text"
+              @dblclick="todoStore.startEditing(task)"
+            >{{ task.text }}</span>
+          </div>
+          
+          <div class="task-actions">
+            <button 
+              v-if="todoStore.editingTaskId !== task.id"
+              @click="todoStore.startEditing(task)" 
+              class="edit-btn"
+            >✏️</button>
+            <button @click="todoStore.deleteTask(task.id)" class="delete-btn">×</button>
+          </div>
         </div>
         
         <p v-if="todoStore.filteredTasks.length === 0" class="empty-message">
@@ -48,6 +72,10 @@ import { useTodoStore } from '../stores/todo'
 
 const newTask = ref('')
 const todoStore = useTodoStore()
+
+const vFocus = {
+  mounted: (el) => el.focus()
+}
 
 const addTask = () => {
   if (newTask.value.trim()) {
@@ -125,9 +153,20 @@ h1 {
   cursor: pointer;
 }
 
-.task-text {
+.view-mode {
   flex: 1;
+}
+
+.task-text {
   font-size: 1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.task-text:hover {
+  background: #f0f0f0;
 }
 
 .task-item.completed .task-text {
@@ -135,18 +174,52 @@ h1 {
   color: #888;
 }
 
-.delete-btn {
-  background: #ff6b6b;
-  color: white;
+.edit-mode {
+  flex: 1;
+}
+
+.edit-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 2px solid #6C63FF;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.task-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.edit-btn, .delete-btn {
   border: none;
-  border-radius: 50%;
+  border-radius: 4px;
   width: 30px;
   height: 30px;
   cursor: pointer;
-  font-size: 1.2rem;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.2s;
+}
+
+.edit-btn {
+  background: #ffd166;
+  color: #333;
+}
+
+.edit-btn:hover {
+  background: #ffc847;
+}
+
+.delete-btn {
+  background: #ff6b6b;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #ff5252;
 }
 
 .empty-message {
